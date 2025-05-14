@@ -64,8 +64,8 @@ O sistema utiliza os seguintes modelos de dados:
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/sistema-gerenciamento-imoveis.git
-   cd sistema-gerenciamento-imoveis
+   git clone https://github.com/JFernando2/controle-imoveis.git
+   cd controle-imoveis
    ```
 
 2. Instale as dependências:
