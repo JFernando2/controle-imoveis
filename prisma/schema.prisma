@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id             String          @id @default(uuid())
+  nome           String
+  email          String          @unique
+  senha          String
+  telefone       String?
+  role           Role            @default(USUARIO)
+  criadoEm       DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+  imoveis        Imovel[]
+  agendamentos   Agendamento[]
+  contratos      Contrato[]
+}
+
+model Imovel {
+  id             String          @id @default(uuid())
+  titulo         String
+  descricao      String
+  tipo           TipoImovel
+  status         StatusImovel    @default(DISPONIVEL)
+  valor          Float
+  area           Float
+  quartos        Int
+  banheiros      Int
+  vagas          Int?
+  endereco       Endereco?
+  proprietarioId String
+  proprietario   Usuario         @relation(fields: [proprietarioId], references: [id])
+  caracteristicas CaracteristicaImovel[]
+  imagens        ImagemImovel[]
+  agendamentos   Agendamento[]
+  contratos      Contrato[]
+  criadoEm       DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+}
+
+model Endereco {
+  id             String          @id @default(uuid())
+  cep            String
+  logradouro     String
+  numero         String
+  complemento    String?
+  bairro         String
+  cidade         String
+  estado         String
+  imovelId       String          @unique
+  imovel         Imovel          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+}
+
+model CaracteristicaImovel {
+  id             String          @id @default(uuid())
+  nome           String
+  imovelId       String
+  imovel         Imovel          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+
+  @@unique([nome, imovelId])
+}
+
+model ImagemImovel {
+  id             String          @id @default(uuid())
+  url            String
+  imovelId       String
+  imovel         Imovel          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  destaque       Boolean         @default(false)
+  ordem          Int             @default(0)
+}
+
+model Agendamento {
+  id             String          @id @default(uuid())
+  data           DateTime
+  horario        String
+  status         StatusAgendamento @default(PENDENTE)
+  observacoes    String?
+  usuarioId      String
+  usuario        Usuario         @relation(fields: [usuarioId], references: [id])
+  imovelId       String
+  imovel         Imovel          @relation(fields: [imovelId], references: [id])
+  criadoEm       DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+}
+
+model Contrato {
+  id             String          @id @default(uuid())
+  tipo           TipoContrato
+  dataInicio     DateTime
+  dataFim        DateTime?
+  valor          Float
+  status         StatusContrato  @default(ATIVO)
+  documentoUrl   String?
+  usuarioId      String
+  usuario        Usuario         @relation(fields: [usuarioId], references: [id])
+  imovelId       String
+  imovel         Imovel          @relation(fields: [imovelId], references: [id])
+  pagamentos     Pagamento[]
+  criadoEm       DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+}
+
+model Pagamento {
+  id             String          @id @default(uuid())
+  valor          Float
+  dataPagamento  DateTime?
+  dataVencimento DateTime
+  status         StatusPagamento @default(PENDENTE)
+  comprovante    String?
+  contratoId     String
+  contrato       Contrato        @relation(fields: [contratoId], references: [id], onDelete: Cascade)
+  criadoEm       DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+}
+
+enum Role {
+  ADMIN
+  CORRETOR
+  USUARIO
+}
+
+enum TipoImovel {
+  CASA
+  APARTAMENTO
+  TERRENO
+  COMERCIAL
+  RURAL
+}
+
+enum StatusImovel {
+  DISPONIVEL
+  ALUGADO
+  VENDIDO
+  INDISPONIVEL
+}
+
+enum StatusAgendamento {
+  PENDENTE
+  CONFIRMADO
+  CANCELADO
+  CONCLUIDO
+}
+
+enum TipoContrato {
+  VENDA
+  ALUGUEL
+}
+
+enum StatusContrato {
+  ATIVO
+  FINALIZADO
+  CANCELADO
+}
+
+enum StatusPagamento {
+  PENDENTE
+  PAGO
+  ATRASADO
+  CANCELADO
+}
